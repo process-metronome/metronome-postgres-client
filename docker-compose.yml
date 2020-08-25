@@ -1,0 +1,39 @@
+# Use postgres/example user/password credentials
+version: '3.3'
+
+services:
+  postgres:
+    image: postgres:12-alpine
+    restart: always
+    environment:
+      POSTGRES_PASSWORD: adminpassword
+      POSTGRES_USER: admin
+      POSTGRES_DB: admin
+
+  client:
+    build: ./metronome-postgres-client
+    depends_on:
+      - postgres
+      - config
+    volumes:
+    - type: volume
+      source: sql_files
+      target: /app/sql
+    command: "-f /app/sql -d metronome -u metronome -p metronome --create provision"
+    environment:
+      PGHOST: postgres
+      PGPORT: 5432
+      PGUSER: admin
+      PGPASSWORD: adminpassword
+      PGDATABASE: admin
+
+  config:
+    build: config
+    restart: on-failure
+    volumes:
+    - source: sql_files
+      type: volume
+      target: /data
+
+volumes:
+  sql_files:
