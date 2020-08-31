@@ -21,7 +21,7 @@ podTemplate(
             resourceLimitCpu:   '300m',
             resourceRequestMemory:'256Mi',
             resourceLimitMemory:'512Mi'
-        )
+        ),
         containerTemplate(
             name:               'docker',
             image:              'docker:19.03.1',
