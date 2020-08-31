@@ -56,42 +56,42 @@ podTemplate(
         )
     ]
    ){
-    node(POD_LABEL){
-        stage("Setup Build Environment"){
-            checkout scm
+  node(POD_LABEL){
+    stage("Setup Build Environment"){
+      checkout scm
 
-            sh '''
-                git rev-parse HEAD > git_commit_id.txt
-            '''
-            env.GIT_COMMIT_ID = readFile('git_commit_id.txt').trim()
-            env.GIT_COMMIT_SHA = env.GIT_COMMIT_ID.substring(0, 7)
-            env.CHART_NAME = readFile('chart_name.txt').trim()
-            env.CHART_VERSION = readFile('chart_version.txt').trim()
+      sh '''
+          git rev-parse HEAD > git_commit_id.txt
+      '''
+      env.GIT_COMMIT_ID = readFile('git_commit_id.txt').trim()
+      env.GIT_COMMIT_SHA = env.GIT_COMMIT_ID.substring(0, 7)
+      env.CHART_NAME = readFile('chart_name.txt').trim()
+      env.CHART_VERSION = readFile('chart_version.txt').trim()
 
-            println "GIT Id: ${env.GIT_COMMIT_SHA}"
-            println "Build Id: ${env.BUILD_TAG}"
-            
-            container('doctl'){
-                sh '''
-                    /app/doctl auth init
-                    /app/doctl registry login
-                ''' 
-            }
-        stage("Build Images"){
-            container('docker'){                
-                sh '''
-                    docker build --tag metronome-postgres-client .
-                    docker tag metronome-postgres-client $REGISTRY/metronome-postgres-client:$GIT_COMMIT_SHA
-                    docker push $REGISTRY/metronome-postgres-client:$GIT_COMMIT_SHA
-                '''
-                if (env.BRANCH_NAME == 'master') {
-                sh '''
-                    docker tag metronome-postgres-client $REGISTRY/metronome-postgres-client:latest
-                    docker push $REGISTRY/metronome-postgres-client:latest
-                '''
-                } 
-            }
-        }
+      println "GIT Id: ${env.GIT_COMMIT_SHA}"
+      println "Build Id: ${env.BUILD_TAG}"
+      
+      container('doctl'){
+          sh '''
+              /app/doctl auth init
+              /app/doctl registry login
+          ''' 
+      }
     }
+    stage("Build Images"){
+      container('docker'){                
+        sh '''
+            docker build --tag metronome-postgres-client .
+            docker tag metronome-postgres-client $REGISTRY/metronome-postgres-client:$GIT_COMMIT_SHA
+            docker push $REGISTRY/metronome-postgres-client:$GIT_COMMIT_SHA
+        '''
+        if (env.BRANCH_NAME == 'master') {
+        sh '''
+            docker tag metronome-postgres-client $REGISTRY/metronome-postgres-client:latest
+            docker push $REGISTRY/metronome-postgres-client:latest
+        '''
+        } 
+      }
+    }
+  }
 }
-
